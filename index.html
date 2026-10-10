@@ -3,85 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tower Tycoon</title>
+    <title>Tower Tycoon 3</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: #1a1a2e; color: #fff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding-bottom: 20px; }
+        body { background-color: #1a1a2e; color: #fff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
-        /* Horní panel s penězi */
+        /* Horní lišta */
         .header { background: #16213e; width: 100%; max-width: 480px; padding: 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f3460; }
-        .money-display { font-size: 1.4rem; font-weight: bold; color: #4ecc71; }
-        .income-display { font-size: 0.9rem; color: #e94560; }
+        .money-container { text-align: right; }
+        .money-display { font-size: 1.6rem; font-weight: bold; color: #4ecc71; }
+        .income-display { font-size: 0.9rem; color: #a2a2a2; }
 
-        /* Věž a patra */
-        .tower-container { width: 100%; max-width: 480px; display: flex; flex-direction: column-reverse; padding: 10px; gap: 10px; }
-        .floor { background: #0f3460; border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #e94560; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        .floor-info { display: flex; flex-direction: column; }
-        .floor-name { font-weight: bold; font-size: 1rem; }
-        .floor-stats { font-size: 0.8rem; color: #a2a2a2; margin-top: 4px; }
+        /* Hlavní plocha (Věž a Tlačítko) */
+        .main-content { width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; flex-grow: 1; padding: 10px; padding-bottom: 70px; /* pro spodní tlačítko */ }
         
-        /* Tlačítka */
-        .btn { background: #e94560; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
-        .btn:active { transform: scale(0.95); }
-        .btn:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
+        .tower-visible-part { width: 100%; display: flex; flex-direction: column-reverse; gap: 8px; margin-bottom: 20px; }
         
-        .build-btn { width: 100%; max-width: 480px; margin: 15px 0; padding: 15px; font-size: 1.1rem; background: #4ecc71; }
+        .floor { background: #0f3460; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .floor-name { font-weight: bold; font-size: 1.1rem; }
+        .floor-stats { font-size: 0.85rem; color: #a2a2a2; margin-top: 2px; }
+        
+        /* Tlačítka a barvy */
+        .btn { color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; font-size: 1rem; }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { background: #444 !important; opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-upgrade { background: #16213e; border: 1px solid #e94560; color: #e94560; }
+        .btn-upgrade:not(:disabled):hover { background: #e94560; color: white; }
+
+        .btn-build-container { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 10px; background: #1a1a2e; z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.5); }
+        .btn-build { background: #e94560; width: 100%; padding: 15px; font-size: 1.2rem; }
+        .btn-build:not(:disabled):hover { background: #ff5e78; }
+
+        /* Ikony pro patra (jen pro představu, nahrazeno emoji) */
+        .floor-icon { font-size: 1.5rem; margin-right: 12px; }
+        .floor-main { display: flex; align-items: center; }
+
     </style>
 </head>
 <body>
 
     <div class="header">
         <div>
-            <div>Peníze: <span class="money-display" id="money">$0</span></div>
-            <div class="income-display">+<span id="income">0</span> $/sec</div>
+            <h1>Tower 3</h1>
+            <div class="income-display">Příjem: +<span id="income">0</span>/s</div>
         </div>
-        <button class="btn" onclick="resetGame()" style="background:#555; font-size:0.7rem;">Reset</button>
+        <div class="money-container">
+            <div class="money-display" id="money">$0</div>
+            <button class="btn" onclick="resetGame()" style="background:#444; font-size:0.7rem; padding: 4px 8px; margin-top: 5px;">Reset</button>
+        </div>
     </div>
 
-    <button class="btn build-btn" id="build-btn" onclick="buildFloor()">Postavit nové patro ($<span id="build-cost">100</span>)</button>
+    <div class="main-content">
+        <div class="tower-visible-part" id="tower">
+            <!-- Patra se přidají sem -->
+        </div>
+    </div>
 
-    <div class="tower-container" id="tower"></div>
+    <div class="btn-build-container">
+        <button class="btn btn-build" id="build-btn" onclick="buildFloor()">
+            🏗️ Postavit patro <span id="floor-num">2</span> ($<span id="build-cost">0</span>)
+        </button>
+    </div>
 
     <script>
         let gameState = {
-            money: 100,
+            money: 50, // Počáteční peníze
             floors: [
-                { id: 1, name: "Kavárna", level: 1, baseIncome: 5, upgradeCost: 20 }
+                // První patro je v základu
+                { id: 1, type: "lobby", name: "Vstupní Lobby", level: 1, baseIncome: 1, upgradeCost: 15 }
             ]
         };
 
-        const floorTypes = ["Pizzerie", "Kancelář", "Obchod s obuví", "Posilovna", "Kino", "IT Firma", "Luxusní Hotel"];
+        // Definice možných typů pater s emoji a barvou
+        const floorDefs = {
+            lobby:   { icon: "🏢", color: "#6c757d", names: ["Vstupní Lobby"] },
+            food:    { icon: "🍕", color: "#ffc107", names: ["Pizzerie", "Kavárna", "Suši Bar", "Rychlé občerstvení"] },
+            service: { icon: "💇", color: "#17a2b8", names: ["Kadeřnictví", "Čistírna", "Opravna", "Cestovka"] },
+            office:  { icon: "💼", color: "#007bff", names: ["Účetní", "Právníci", "IT Startup", "Kreativní studio"] },
+            res:     { icon: "🏠", color: "#28a745", names: ["Byt 1+kk", "Apartmán", "Loft", "Penthous"] }
+        };
+        const randomTypes = ["food", "service", "office", "res"];
 
         function getBuildCost() {
-            return Math.floor(100 * Math.pow(1.8, gameState.floors.length - 1));
+            // Cena roste s každým patrem
+            return Math.floor(10 * Math.pow(2.2, gameState.floors.length));
         }
 
         function updateUI() {
             document.getElementById('money').innerText = '$' + Math.floor(gameState.money).toLocaleString();
             
-            let totalIncome = gameState.floors.reduce((sum, f) => sum + (f.baseIncome * f.level), 0);
-            document.getElementById('income').innerText = totalIncome.toLocaleString();
+            let totalIncome = gameState.floors.reduce((sum, f) => sum + (f.baseIncome * Math.pow(1.5, f.level-1)), 0);
+            document.getElementById('income').innerText = totalIncome.toFixed(1);
             
             let buildCost = getBuildCost();
             document.getElementById('build-cost').innerText = buildCost.toLocaleString();
+            document.getElementById('floor-num').innerText = gameState.floors.length + 1;
             document.getElementById('build-btn').disabled = gameState.money < buildCost;
 
             const towerEl = document.getElementById('tower');
             towerEl.innerHTML = '';
 
+            // Vykreslíme patra
             gameState.floors.forEach((floor, index) => {
-                let currentIncome = floor.baseIncome * floor.level;
+                const def = floorDefs[floor.type];
+                let currentIncome = floor.baseIncome * Math.pow(1.5, floor.level-1);
+                
                 let floorDiv = document.createElement('div');
                 floorDiv.className = 'floor';
+                floorDiv.style.borderLeftColor = def.color;
                 floorDiv.innerHTML = `
-                    <div class="floor-info">
-                        <span class="floor-name">Patro ${index + 1}: ${floor.name} (Lvl ${floor.level})</span>
-                        <span class="floor-stats">Příjem: +$${currentIncome}/s</span>
+                    <div class="floor-main">
+                        <div class="floor-icon">${def.icon}</div>
+                        <div class="floor-info">
+                            <span class="floor-name">${floor.name}</span>
+                            <span class="floor-stats">Level ${floor.level} | +${currentIncome.toFixed(1)}/s</span>
+                        </div>
                     </div>
-                    <button class="btn" 
+                    <button class="btn btn-upgrade" 
                             onclick="upgradeFloor(${index})" 
                             ${gameState.money < floor.upgradeCost ? 'disabled' : ''}>
-                        Vylepšit ($${floor.upgradeCost})
+                        Vylepšit ($${floor.upgradeCost.toLocaleString()})
                     </button>
                 `;
                 towerEl.appendChild(floorDiv);
@@ -92,14 +134,23 @@
             let cost = getBuildCost();
             if (gameState.money >= cost) {
                 gameState.money -= cost;
-                let randomName = floorTypes[Math.floor(Math.random() * floorTypes.length)];
+                
+                // Náhodný typ a název
+                let type = randomTypes[Math.floor(Math.random() * randomTypes.length)];
+                let def = floorDefs[type];
+                let name = def.names[Math.floor(Math.random() * def.names.length)];
+                
+                // Nové patro má vyšší základní příjem i cenu vylepšení
+                let count = gameState.floors.length;
                 let newFloor = {
-                    id: gameState.floors.length + 1,
-                    name: randomName,
+                    id: count + 1,
+                    type: type,
+                    name: name,
                     level: 1,
-                    baseIncome: Math.floor(10 * Math.pow(1.5, gameState.floors.length)),
-                    upgradeCost: Math.floor(50 * Math.pow(1.5, gameState.floors.length))
+                    baseIncome: Math.floor(1 * Math.pow(1.6, count)),
+                    upgradeCost: Math.floor(20 * Math.pow(1.8, count))
                 };
+                
                 gameState.floors.push(newFloor);
                 saveGame();
                 updateUI();
@@ -111,33 +162,38 @@
             if (gameState.money >= floor.upgradeCost) {
                 gameState.money -= floor.upgradeCost;
                 floor.level += 1;
-                floor.upgradeCost = Math.floor(floor.upgradeCost * 1.6);
+                // Cena vylepšení se zvýší
+                floor.upgradeCost = Math.floor(floor.upgradeCost * 2);
                 saveGame();
                 updateUI();
             }
         }
 
-        // Herní smyčka (přičítání mincí každou sekundu)
+        // Herní smyčka (každou sekundu)
         setInterval(() => {
-            let totalIncome = gameState.floors.reduce((sum, f) => sum + (f.baseIncome * f.level), 0);
+            let totalIncome = gameState.floors.reduce((sum, f) => sum + (f.baseIncome * Math.pow(1.5, f.level-1)), 0);
             gameState.money += totalIncome;
             saveGame();
             updateUI();
         }, 1000);
 
         function saveGame() {
-            localStorage.setItem('tower_tycoon_save', JSON.stringify(gameState));
+            localStorage.setItem('tower_tycoon_3_save', JSON.stringify(gameState));
         }
 
         function loadGame() {
-            let saved = localStorage.getItem('tower_tycoon_save');
-            if (saved) gameState = JSON.parse(saved);
+            let saved = localStorage.getItem('tower_tycoon_3_save');
+            if (saved) {
+                let loadedState = JSON.parse(saved);
+                // Kontrola kompatibility (pokud by se změnila struktura)
+                if(loadedState && loadedState.floors) gameState = loadedState;
+            }
             updateUI();
         }
 
         function resetGame() {
-            if(confirm("Opravdu chcete začít znovu?")) {
-                localStorage.removeItem('tower_tycoon_save');
+            if(confirm("Opravdu smazat postup a začít znovu?")) {
+                localStorage.removeItem('tower_tycoon_3_save');
                 location.reload();
             }
         }
